@@ -4,11 +4,11 @@ reset:
     lda #$ff
     sta $6002
 
-loop:
-    lda #$55
+    lda #$50
     sta $6000
 
-    lda #$aa
+loop:
+    ror
     sta $6000
 
     jmp loop
