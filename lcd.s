@@ -29,37 +29,18 @@ reset:
     lda #%00000001  ; Clear display
     jsr lcd_instruction
 
-    lda #"H"
+    ldx #0
+print:
+    lda message,x
+    beq loop        ; Exit print loop
     jsr print_char
-    lda #"e"
-    jsr print_char
-    lda #"l"
-    jsr print_char
-    lda #"l"
-    jsr print_char
-    lda #"o"
-    jsr print_char
-    lda #","
-    jsr print_char
-    lda #" "
-    jsr print_char
-    lda #"L"
-    jsr print_char
-    lda #"a"
-    jsr print_char
-    lda #"n"
-    jsr print_char
-    lda #"d"
-    jsr print_char
-    lda #"s"
-    jsr print_char
-    lda #"y"
-    jsr print_char
-    lda #"!"
-    jsr print_char
+    inx
+    jmp print
 
 loop:
     jmp loop
+
+message: .asciiz "Hello, Landsy!"
 
 lcd_wait:
     pha             ; Save A register
