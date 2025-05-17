@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+function local_path()
+{
+    echo "$(dirname "$0")"/"$1"
+}
+
+function main()
+{
+    minipro \
+        --device AT28C256 \
+        --unprotect \
+        --protect \
+        --write \
+        "$(local_path ../asm-output/rom.bin)"
+}
+
+main "$@"

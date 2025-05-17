@@ -14,14 +14,18 @@ function main()
         exit 1
     fi
 
+    local output_dir
+    output_dir="$(local_path ../asm-output)"
+    mkdir --parents "${output_dir}"
+
     local file="$1"
     # Expects vasm oldstyle
     vasm \
         -dotdir \
         -Fbin \
-        -I"$(local_path asm-includes)" \
+        -I"$(local_path ../asm-includes)" \
         "${file}" \
-        -o rom.bin
+        -o "${output_dir}/rom.bin"
 }
 
 main "$@"
