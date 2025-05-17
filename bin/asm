@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+function local_path()
+{
+    echo "$(dirname "$0")"/"$1"
+}
+
+function main()
+{
+    if [ "$#" -ne 1 ]; then
+        echo "error: missing file to assemble"
+        echo "usage: $(basename "$0") FILE"
+        exit 1
+    fi
+
+    local file="$1"
+    # Expects vasm oldstyle
+    vasm \
+        -dotdir \
+        -Fbin \
+        -I"$(local_path asm-includes)" \
+        "${file}" \
+        -o rom.bin
+}
+
+main "$@"
