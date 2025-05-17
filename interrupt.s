@@ -2,6 +2,9 @@ IO_DDRA  = $6003
 IO_PORTA = $6001
 IO_DDRB  = $6002
 IO_PORTB = $6000
+IO_PCR   = $600c
+IO_IFR   = $600d
+IO_IER   = $600e
 
 ADDR_VAL     = $0200  ; 2 bytes
 ADDR_MOD10   = $0202  ; 2 bytes
@@ -15,10 +18,16 @@ LCD_MODE_DATA = %00100000
     .org $8000
 
 reset:
+    ; Init stack pointer
     ldx #$ff
-    txs             ; Init stack pointer
+    txs
 
-    cli             ; Clear interrupt disable bit
+    ; Configure interrupts
+    lda #$00        ; Set CA1 interrupt to trigger low
+    sta IO_PCR
+    lda #$82        ; Enable CA1 interrupt input
+    sta IO_IER
+    cli             ; Enable interrupts
 
     lda #%11100000  ; Set data direction (top 3 pins) port A to output
     sta IO_DDRA
@@ -51,10 +60,12 @@ main_loop:
     sta ADDR_MSG
 
     ; Save input number to RAM
+    sei                     ; Disable interrupts
     lda ADDR_COUNTER
     sta ADDR_VAL
     lda ADDR_COUNTER + 1
     sta ADDR_VAL + 1
+    cli                     ; Enable interrupts
 
 divide:
     ; Init remainder to 0 and clear carry bit
@@ -165,14 +176,13 @@ print_char:
     rts
 
 nmi:
-    rti     ; Return from interrupt
-
 irq:
     inc ADDR_COUNTER
     bne irq_exit
     inc ADDR_COUNTER + 1
 irq_exit:
-    rti     ; Return from interrupt
+    bit IO_PORTA    ; Clear interrupt by reading port A
+    rti             ; Return from interrupt
 
     .org $fffa
     .word nmi
