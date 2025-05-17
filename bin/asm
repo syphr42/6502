@@ -23,6 +23,7 @@ function main()
     vasm \
         -dotdir \
         -Fbin \
+        -nocompdir \
         -I"$(local_path ../asm-includes)" \
         "${file}" \
         -o "${output_dir}/rom.bin"

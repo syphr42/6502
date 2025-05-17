@@ -1,0 +1,7 @@
+IO_DDRA  = $6003
+IO_PORTA = $6001
+IO_DDRB  = $6002
+IO_PORTB = $6000
+IO_PCR   = $600c
+IO_IFR   = $600d
+IO_IER   = $600e

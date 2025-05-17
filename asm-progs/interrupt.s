@@ -1,21 +1,12 @@
-IO_DDRA  = $6003
-IO_PORTA = $6001
-IO_DDRB  = $6002
-IO_PORTB = $6000
-IO_PCR   = $600c
-IO_IFR   = $600d
-IO_IER   = $600e
-
 ADDR_VAL     = $0200  ; 2 bytes
 ADDR_MOD10   = $0202  ; 2 bytes
 ADDR_MSG     = $0204  ; 6 bytes
 ADDR_COUNTER = $020a  ; 2 bytes
 
-LCD_ENABLE    = %10000000
-LCD_READ      = %01000000
-LCD_MODE_DATA = %00100000
-
     .org $8000
+
+    .include io.s
+    .include lcd.s
 
 reset:
     ; Init stack pointer
