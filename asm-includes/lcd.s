@@ -2,7 +2,17 @@ LCD_ENABLE    = %10000000
 LCD_READ      = %01000000
 LCD_MODE_DATA = %00100000
 
+;;;
+; Reset the LCD display with default configuration.
+;
+; Set 8-bit, 2-line, 5x8 font
+; Display on, cursor off, blink off
+; Draw left to right, don't scroll
+; Clear display
+;;;
 lcd_reset:
+    pha             ; Save A register to stack
+
     lda #%11100000  ; Set data direction (top 3 pins) port A to output
     sta IO_DDRA
     lda #%11111111  ; Set data direction (all pins) port B to output
@@ -19,46 +29,69 @@ lcd_reset:
     lda #%00000001  ; Clear display
     jsr lcd_instruction
 
-    rts
+    pla             ; Pull A register from stack
+    rts             ; Return
+;;; End lcd_reset
 
-lcd_wait:
-    pha             ; Save A register
+;;;
+; Send LCD instruction from the A register.
+;;;
+lcd_instruction:
+    jsr _lcd_wait
+
+    sta IO_PORTB    ; Send A register to the LCD
+    pha             ; Save A register to stack
+
+    lda #LCD_ENABLE ; Enable LCD
+    sta IO_PORTA
+    lda #0          ; Clear LCD control inputs
+    sta IO_PORTA
+
+    pla             ; Pull A register from stack
+    rts             ; Return
+;;; End lcd_instruction
+
+;;;
+; Print the value in the A register to the LCD display.
+;;;
+lcd_print_char:
+    jsr _lcd_wait
+
+    sta IO_PORTB    ; Send A register to the LCD
+    pha             ; Save A register to stack
+
+    lda #(LCD_ENABLE | LCD_MODE_DATA) ; Enable LCD in data mode
+    sta IO_PORTA
+    lda #0                            ; Clear LCD control inputs
+    sta IO_PORTA
+
+    pla             ; Pull A register from stack
+    rts             ; Return
+;;; End lcd_print_char
+
+;;;
+; Private subroutine to wait for LCD to clear its busy flag.
+;;;
+_lcd_wait:
+    pha             ; Save A register to stack
+
     lda #%00000000  ; Set Port B pins to input
     sta IO_DDRB
 
-lcd_wait_busy:
+lcd_wait_busy$
     lda #LCD_READ
     sta IO_PORTA
     lda #(LCD_READ | LCD_ENABLE)
     sta IO_PORTA
     lda IO_PORTB    ; Read busy flag
     and #%10000000  ; Ignore all but the busy flag
-    bne lcd_wait_busy
+    bne lcd_wait_busy$
 
     lda #0          ; Clear LCD control inputs
     sta IO_PORTA
     lda #%11111111  ; Set Port B pins to output
     sta IO_DDRB
-    pla             ; Restore A register
 
-    rts
-
-lcd_instruction:
-    jsr lcd_wait
-    sta IO_PORTB
-    lda #LCD_ENABLE ; Enable LCD
-    sta IO_PORTA
-    lda #0          ; Clear LCD control inputs
-    sta IO_PORTA
-
-    rts
-
-lcd_print_char:
-    jsr lcd_wait
-    sta IO_PORTB
-    lda #(LCD_ENABLE | LCD_MODE_DATA) ; Enable LCD in data mode
-    sta IO_PORTA
-    lda #0                            ; Clear LCD control inputs
-    sta IO_PORTA
-
-    rts
+    pla             ; Pull A register from stack
+    rts             ; Return
+;;; End lcd_wait
