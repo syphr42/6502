@@ -1,9 +1,16 @@
+; ---
+; Subroutines for interacting with the LCD device.
+;
+; Requires:
+;   * io.s
+; ---
+
 LCD_ENABLE    = %10000000
 LCD_READ      = %01000000
 LCD_MODE_DATA = %00100000
 
 ;;;
-; Reset the LCD display with default configuration.
+; Reset the LCD device with default configuration.
 ;
 ; Set 8-bit, 2-line, 5x8 font
 ; Display on, cursor off, blink off
@@ -47,7 +54,7 @@ lcd_set_cursor_home:
 ;;; End lcd_set_cursor_home
 
 ;;;
-; Print the value in the A register to the LCD display.
+; Print the value in the A register to the LCD device.
 ;;;
 lcd_print_char:
     jsr _lcd_wait

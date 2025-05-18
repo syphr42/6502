@@ -1,3 +1,7 @@
+; ---
+; Constants for addressing the IO chip.
+; ---
+
 IO_DDRA  = $6003    ; 1 byte
 IO_PORTA = $6001    ; 1 byte
 IO_DDRB  = $6002    ; 1 byte
