@@ -8,8 +8,9 @@ ADDR_MSG   = $0204  ; 6 bytes
     .include lcd.s
 
 reset:
+    ; Init stack pointer
     ldx #$ff
-    txs             ; Init stack pointer
+    txs
 
     ; Reset LCD
     jsr lcd_reset
