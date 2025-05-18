@@ -30,8 +30,7 @@ reset:
 
 main_loop:
     ; Return cursor to home (don't clear to avoid flashing)
-    lda #%00000010
-    jsr lcd_instruction
+    jsr lcd_set_cursor_home
 
     ; Init printable message to empty string
     lda #0

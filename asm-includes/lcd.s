@@ -21,35 +21,30 @@ lcd_reset:
     sta IO_PORTA
 
     lda #%00111000  ; Set 8-bit, 2-line, 5x8 font
-    jsr lcd_instruction
+    jsr _lcd_instruction
     lda #%00001100  ; Display on, cursor off, blink off
-    jsr lcd_instruction
+    jsr _lcd_instruction
     lda #%00000110  ; Draw left to right, don't scroll
-    jsr lcd_instruction
+    jsr _lcd_instruction
     lda #%00000001  ; Clear display
-    jsr lcd_instruction
+    jsr _lcd_instruction
 
     pla             ; Pull A register from stack
     rts             ; Return
 ;;; End lcd_reset
 
 ;;;
-; Send LCD instruction from the A register.
+; Set the LCD cursor to the home position.
 ;;;
-lcd_instruction:
-    jsr _lcd_wait
-
-    sta IO_PORTB    ; Send A register to the LCD
+lcd_set_cursor_home:
     pha             ; Save A register to stack
 
-    lda #LCD_ENABLE ; Enable LCD
-    sta IO_PORTA
-    lda #0          ; Clear LCD control inputs
-    sta IO_PORTA
+    lda #%00000010
+    jsr _lcd_instruction
 
     pla             ; Pull A register from stack
     rts             ; Return
-;;; End lcd_instruction
+;;; End lcd_set_cursor_home
 
 ;;;
 ; Print the value in the A register to the LCD display.
@@ -68,6 +63,24 @@ lcd_print_char:
     pla             ; Pull A register from stack
     rts             ; Return
 ;;; End lcd_print_char
+
+;;;
+; Private subroutine to send LCD instruction from the A register.
+;;;
+_lcd_instruction:
+    jsr _lcd_wait
+
+    sta IO_PORTB    ; Send A register to the LCD
+    pha             ; Save A register to stack
+
+    lda #LCD_ENABLE ; Enable LCD
+    sta IO_PORTA
+    lda #0          ; Clear LCD control inputs
+    sta IO_PORTA
+
+    pla             ; Pull A register from stack
+    rts             ; Return
+;;; End _lcd_instruction
 
 ;;;
 ; Private subroutine to wait for LCD to clear its busy flag.
