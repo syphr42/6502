@@ -21,6 +21,7 @@ function main()
     local file="$1"
     # Expects vasm oldstyle
     vasm \
+        -wdc02 \
         -dotdir \
         -Fbin \
         -nocompdir \

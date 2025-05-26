@@ -30,7 +30,28 @@ rx_wait:
 rx_read:
     lda ACIA_DATA
     jsr lcd_print_char
+    jsr send_char   ; Echo
     jmp rx_wait
+
+send_char:
+    pha
+
+    sta ACIA_DATA
+    jsr tx_delay    ; Delay required due to hardware bug in ACIA
+
+    pla
+    rts
+
+tx_delay:
+    phx
+
+    ldx #100        ; Delay approx 520 cycles @ 1MHz
+tx_delay_loop$
+    dex
+    bne tx_delay_loop$
+
+    plx
+    rts
 
 nmi:
 irq:
