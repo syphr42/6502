@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+REAL_SERIAL_DEVICE="/dev/ttyUSB0"
+VIRT_SERIAL_DEVICE="/tmp/ttyV0"
+
+INPUT_FILE="in.txt"
+OUTPUT_FILE="out.txt"
+
+socat \
+    "${REAL_SERIAL_DEVICE}",rawer \
+    SYSTEM:'tee '"${INPUT_FILE}"' | socat - "PTY,link='"${VIRT_SERIAL_DEVICE}"',rawer,wait-slave" | tee '"${OUTPUT_FILE}"
