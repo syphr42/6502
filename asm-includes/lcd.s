@@ -29,7 +29,7 @@ lcd_reset:
 
     lda #%00111000  ; Set 8-bit, 2-line, 5x8 font
     jsr _lcd_instruction
-    lda #%00001100  ; Display on, cursor off, blink off
+    lda #%00001110  ; Display on, cursor on, blink off
     jsr _lcd_instruction
     lda #%00000110  ; Draw left to right, don't scroll
     jsr _lcd_instruction
