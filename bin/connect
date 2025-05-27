@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+SERIAL_DEVICE="/dev/ttyUSB0"
+
+picocom \
+    --baud 19200 \
+    --databits 8 \
+    --stopbits 1 \
+    --flow n \
+    --parity n \
+    --imap crcrlf,spchex,8bithex \
+    "${SERIAL_DEVICE}"

@@ -1,5 +1,19 @@
 ; ---
-; Constants for addressing the versatile interface adapter.
+; Constants for addressing the asynchronous communications interface adapter
+; (ACIA).
+;
+; Address space: 0x5000 - 0x5FFF
+; ---
+
+ACIA_DATA   = $5000     ; 1 byte
+ACIA_STATUS = $5001     ; 1 byte
+ACIA_CMD    = $5002     ; 1 byte
+ACIA_CTRL   = $5003     ; 1 byte
+
+; ---
+; Constants for addressing the versatile interface adapter (VIA).
+;
+; Address space: 0x6000 - 0x6FFF
 ; ---
 
 ; Register A

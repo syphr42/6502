@@ -1,8 +1,3 @@
-ACIA_DATA   = $5000
-ACIA_STATUS = $5001
-ACIA_CMD    = $5002
-ACIA_CTRL   = $5003
-
     .org $8000
 
     .include io.s
