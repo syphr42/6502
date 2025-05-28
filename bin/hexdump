@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+function local_path()
+{
+    echo "$(dirname "$0")"/"$1"
+}
+
+function main()
+{
+    local output_dir
+    output_dir="$(local_path ../output)"
+
+    hexdump \
+        -C \
+        "${output_dir}/rom.bin" \
+        "$@"
+}
+
+main "$@"

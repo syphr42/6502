@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+function local_path()
+{
+    echo "$(dirname "$0")"/"$1"
+}
+
+function main()
+{
+    ca65 \
+        -I "$(local_path ../ca65-includes)" \
+        "$@"
+}
+
+main "$@"

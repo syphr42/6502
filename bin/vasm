@@ -15,7 +15,7 @@ function main()
     fi
 
     local output_dir
-    output_dir="$(local_path ../vasm-output)"
+    output_dir="$(local_path ../output)"
     mkdir --parents "${output_dir}"
 
     local file="$1"
