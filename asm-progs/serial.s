@@ -17,6 +17,14 @@ reset:
     lda #$0b        ; no parity, no echo, no interrupts
     sta ACIA_CMD
 
+    ldx #$00
+send_msg:
+    lda message,x
+    beq rx_wait
+    jsr send_char
+    inx
+    jmp send_msg
+
 rx_wait:
     lda ACIA_STATUS
     and #$08        ; Check receive data register full
@@ -28,13 +36,12 @@ rx_read:
     jsr send_char   ; Echo
     jmp rx_wait
 
-send_char:
-    pha
+message:
+    .asciiz "Hello, world!"
 
+send_char:
     sta ACIA_DATA
     jsr tx_delay    ; Delay required due to hardware bug in ACIA
-
-    pla
     rts
 
 tx_delay:
