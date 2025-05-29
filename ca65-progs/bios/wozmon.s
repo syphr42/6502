@@ -22,7 +22,7 @@ RESET:
                 STY     ACIA_CTRL      ; Send UART config to control address.
                 LDY     #$8B           ; UART: no parity, echo, interrupts.
                 STY     ACIA_CMD       ; Send UART setup command.
-                ; Note: Y register must have B7 set to one at this point.
+                ; Note: Y register must have B7 set to '1' at this point.
 
 NOTCR:
                 CMP     #$08           ; Backspace key?
@@ -37,8 +37,8 @@ ESCAPE:
                 JSR     ECHO           ; Output it.
 
 GETLINE:
-                LDA     #$0D           ; Send CR
-                JSR     ECHO
+                LDA     #$0D           ; CR
+                JSR     ECHO           ; Output it.
 
                 LDY     #$01           ; Initialize text index.
 BACKSPACE:      DEY                    ; Back up text index.
