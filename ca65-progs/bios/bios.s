@@ -3,6 +3,7 @@
   .segment "BIOS"
 
   .include "io.s"
+  .include "lcd.s"
   .include "wozmon.s"
 
   .segment "RESETVEC"

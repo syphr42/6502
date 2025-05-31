@@ -12,7 +12,7 @@ MODE  = $2B                            ; $00 = XAM, $74 = STOR, $B8 = BLOK XAM
 IN    = $0200                          ; Input buffer
 
 RESET:
-                CLD                    ; Clear decimal arithmetic mode.
+                JSR     lcd_reset      ; Reset LCD.
                 CLI                    ; Enable CPU interrupts.
                 LDY     #$1F           ; UART: 8-N-1, 19200 baud.
                 STY     IO_ACIA_CTRL   ; Send UART config to control address.
@@ -41,12 +41,9 @@ BACKSPACE:      DEY                    ; Back up text index.
                 BMI     GETLINE        ; Beyond start of line, reinitialize.
 
 NEXTCHAR:
-                LDA     IO_ACIA_STATUS ; Check status.
-                AND     #$08           ; Key ready?
-                BEQ     NEXTCHAR       ; Loop until ready.
-                LDA     IO_ACIA_DATA   ; Load character. B7 will be '0'.
+                JSR     CHRIN          ; Read char. B7 will be '0'.
+                BCC     NEXTCHAR       ; Loop if no key read.
                 STA     IN,Y           ; Add to text buffer.
-                JSR     ECHO           ; Display character.
                 CMP     #$0D           ; CR?
                 BNE     NOTCR          ; No.
 
@@ -71,7 +68,7 @@ NEXTITEM:
                 CMP     #$3A           ; ":"?
                 BEQ     SETSTOR        ; Yes, set STOR mode.
                 CMP     #$52           ; "R"?
-                BEQ     RUN            ; Yes, run user program.
+                BEQ     WOZRUN         ; Yes, run user program.
                 STX     L              ; $00 -> L.
                 STX     H              ;    and H.
                 STY     YSAV           ; Save Y for comparison
@@ -114,7 +111,7 @@ NOTHEX:
                 INC     STH            ; Add carry to 'store index' high order.
 TONEXTITEM:     JMP     NEXTITEM       ; Get next command item.
 
-RUN:
+WOZRUN:
                 JMP     (XAML)         ; Run at current XAM index.
 
 NOTSTOR:
