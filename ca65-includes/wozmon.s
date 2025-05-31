@@ -1,8 +1,4 @@
-  .setcpu "65C02"
-
   .segment "WOZMON"
-
-  .include "io.s"
 
 XAML  = $24                            ; Last "opened" location Low
 XAMH  = $25                            ; Last "opened" location High
@@ -19,9 +15,9 @@ RESET:
                 CLD                    ; Clear decimal arithmetic mode.
                 CLI                    ; Enable CPU interrupts.
                 LDY     #$1F           ; UART: 8-N-1, 19200 baud.
-                STY     ACIA_CTRL      ; Send UART config to control address.
+                STY     IO_ACIA_CTRL   ; Send UART config to control address.
                 LDY     #$8B           ; UART: no parity, echo, interrupts.
-                STY     ACIA_CMD       ; Send UART setup command.
+                STY     IO_ACIA_CMD    ; Send UART setup command.
                 ; Note: Y register must have B7 set to '1' at this point.
 
 NOTCR:
@@ -45,10 +41,10 @@ BACKSPACE:      DEY                    ; Back up text index.
                 BMI     GETLINE        ; Beyond start of line, reinitialize.
 
 NEXTCHAR:
-                LDA     ACIA_STATUS    ; Check status.
+                LDA     IO_ACIA_STATUS ; Check status.
                 AND     #$08           ; Key ready?
                 BEQ     NEXTCHAR       ; Loop until ready.
-                LDA     ACIA_DATA      ; Load character. B7 will be '0'.
+                LDA     IO_ACIA_DATA   ; Load character. B7 will be '0'.
                 STA     IN,Y           ; Add to text buffer.
                 JSR     ECHO           ; Display character.
                 CMP     #$0D           ; CR?
@@ -180,15 +176,10 @@ PRHEX:
                 ADC     #$06           ; Add offset for letter.
 
 ECHO:
-                STA     ACIA_DATA      ; Output character.
+                STA     IO_ACIA_DATA   ; Output character.
                 PHA                    ; Save A.
                 LDA     #$FF           ; Initialize delay loop.
 TXDELAY:        DEC                    ; Decrement A.
                 BNE     TXDELAY        ; Until A gets to 0.
                 PLA                    ; Restore A.
                 RTS                    ; Return.
-
-  .segment "RESETVEC"
-                .word   $0F00          ; NMI vector
-                .word   RESET          ; RESET vector
-                .word   $0000          ; IRQ vector

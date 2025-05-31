@@ -1,0 +1,21 @@
+# shellcheck shell=bash
+
+function lib_local_path()
+{
+    echo "$(dirname "$0")"/"$1"
+}
+
+function lib_output_dir()
+{
+    local output_dir
+    output_dir="$(lib_local_path ../output)"
+    mkdir --parents "${output_dir}"
+    echo "${output_dir}"
+}
+
+function lib_root_name()
+{
+    local base_name
+    base_name=$(basename "$1")
+    echo "${base_name%%.*}"
+}
