@@ -12,11 +12,12 @@ MODE  = $2B                            ; $00 = XAM, $74 = STOR, $B8 = BLOK XAM
 IN    = $0200                          ; Input buffer
 
 RESET:
+                JSR     io_init_buffer_1 ; Init I/O buffer 1.
                 JSR     lcd_reset      ; Reset LCD.
                 CLI                    ; Enable CPU interrupts.
                 LDY     #$1F           ; UART: 8-N-1, 19200 baud.
                 STY     IO_ACIA_CTRL   ; Send UART config to control address.
-                LDY     #$8B           ; UART: no parity, echo, interrupts.
+                LDY     #$89           ; UART: no parity, no echo, interrupts.
                 STY     IO_ACIA_CMD    ; Send UART setup command.
                 ; Note: Y register must have B7 set to '1' at this point.
 
@@ -41,7 +42,7 @@ BACKSPACE:      DEY                    ; Back up text index.
                 BMI     GETLINE        ; Beyond start of line, reinitialize.
 
 NEXTCHAR:
-                JSR     CHRIN          ; Read char. B7 will be '0'.
+                JSR     io_acia_read_buffer ; Read char. B7 will be '0'.
                 BCC     NEXTCHAR       ; Loop if no key read.
                 STA     IN,Y           ; Add to text buffer.
                 CMP     #$0D           ; CR?
@@ -173,10 +174,5 @@ PRHEX:
                 ADC     #$06           ; Add offset for letter.
 
 ECHO:
-                STA     IO_ACIA_DATA   ; Output character.
-                PHA                    ; Save A.
-                LDA     #$FF           ; Initialize delay loop.
-TXDELAY:        DEC                    ; Decrement A.
-                BNE     TXDELAY        ; Until A gets to 0.
-                PLA                    ; Restore A.
+                JSR     io_acia_write_direct ; Output character.
                 RTS                    ; Return.
