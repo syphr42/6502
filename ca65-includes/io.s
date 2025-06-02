@@ -99,9 +99,18 @@ IO_ACIA_CTRL   = $5003     ; 1 byte
 ; @FlagsModified
 io_acia_char_in:
     lda     IO_ACIA_STATUS      ; Read ACIA status register
+    ldx     IO_ACIA_DATA
+    pha
+    and     #$04
+    beq     @no_overrun
+    lda     #$21
+    jsr     lcd_print_char
+@no_overrun:
+    pla
     and     #$08                ; Check for receive data
     beq     @no_key_pressed     ; If no receive data, exit
-    lda     IO_ACIA_DATA        ; If receive data indicated, read it
+    txa
+    ; lda     IO_ACIA_DATA        ; If receive data indicated, read it
     jsr     io_acia_char_out    ; Echo key press back
     sec                         ; Set carry flag
     rts                         ; Return

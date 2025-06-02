@@ -33,8 +33,8 @@ lcd_reset:
     jsr _lcd_instruction
     lda #%00000110  ; Draw left to right, don't scroll
     jsr _lcd_instruction
-    lda #%00000001  ; Clear display
-    jsr _lcd_instruction
+
+    jsr lcd_clear
 
     pla             ; Pull A register from stack
     rts             ; Return
@@ -47,6 +47,19 @@ lcd_set_cursor_home:
     pha             ; Save A register to stack
 
     lda #%00000010
+    jsr _lcd_instruction
+
+    pla             ; Pull A register from stack
+    rts             ; Return
+;;; End lcd_set_cursor_home
+
+;;;
+; Clear LCD.
+;;;
+lcd_clear:
+    pha             ; Save A register to stack
+
+    lda #%00000001
     jsr _lcd_instruction
 
     pla             ; Pull A register from stack
