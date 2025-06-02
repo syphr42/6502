@@ -90,6 +90,17 @@ IO_ACIA_CTRL   = $5003     ; 1 byte
 ; ---
 
 ; ***
+; Reset the ACIA.
+; ***
+io_acia_reset:
+    jsr     io_init_buffer_1            ; Init I/O buffer 1.
+    lda     #$1F                        ; UART: 8-N-1, 19200 baud.
+    sta     IO_ACIA_CTRL                ; Send UART config to control address.
+    lda     #$89                        ; UART: no parity, no echo, interrupts.
+    sta     IO_ACIA_CMD                 ; Send UART setup command.
+    rts                                 ; Return
+
+; ***
 ; Read a byte from the serial interface and write it into a buffer.
 ; ***
 ; @RegisterAModified

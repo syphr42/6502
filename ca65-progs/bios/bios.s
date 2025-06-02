@@ -16,7 +16,13 @@ IO_BUFFER_1:            .res $100       ; Must be 256 bytes
     .include "io.s"
     .include "lcd.s"
 
-IRQ_HANDLER:
+bios_reset:
+    jsr     io_acia_reset               ; Reset the ACIA for serial comms
+    jsr     lcd_reset                   ; Reset LCD
+    cli                                 ; Enable CPU interrupts
+    jmp     WOZMON                      ; Jump to Wozmon
+
+bios_irq_handler:
     pha                                 ; Save A register to stack
     jsr     io_acia_load_buffer         ; Read data from serial if available
     pla                                 ; Restore register A from stack
@@ -26,6 +32,6 @@ IRQ_HANDLER:
 
 
     .segment "RESETVEC"
-    .word   $0F00                       ; NMI vector
-    .word   RESET                       ; RESET vector
-    .word   IRQ_HANDLER                 ; IRQ vector
+    .word   bios_reset                  ; NMI vector
+    .word   bios_reset                  ; RESET vector
+    .word   bios_irq_handler            ; IRQ vector

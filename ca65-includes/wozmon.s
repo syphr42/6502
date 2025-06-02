@@ -11,15 +11,8 @@ MODE  = $2B                            ; $00 = XAM, $74 = STOR, $B8 = BLOK XAM
 
 IN    = $0200                          ; Input buffer
 
-RESET:
-                JSR     io_init_buffer_1 ; Init I/O buffer 1.
-                JSR     lcd_reset      ; Reset LCD.
-                CLI                    ; Enable CPU interrupts.
-                LDY     #$1F           ; UART: 8-N-1, 19200 baud.
-                STY     IO_ACIA_CTRL   ; Send UART config to control address.
-                LDY     #$89           ; UART: no parity, no echo, interrupts.
-                STY     IO_ACIA_CMD    ; Send UART setup command.
-                ; Note: Y register must have B7 set to '1' at this point.
+WOZMON:
+                LDY     #$80           ; Y register must have B7 set to '1'.
 
 NOTCR:
                 CMP     #$08           ; Backspace key?
