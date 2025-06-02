@@ -1,4 +1,78 @@
 ; ---
+; Generic I/O subroutines.
+; ---
+
+; ***
+; Initialize input buffer 1.
+;
+; Requires that the following variables be defined:
+;   IO_BUFFER_1_READ_PTR (1 byte)
+;   IO_BUFFER_1_WRITE_PTR (1 byte)
+;   IO_BUFFER_1 (256 bytes)
+; ***
+; @RegisterAModified
+; @FlagsModified
+io_init_buffer_1:
+    lda IO_BUFFER_1_READ_PTR    ; Buffer is 256b so value does not matter
+    sta IO_BUFFER_1_WRITE_PTR   ; Sync write pointer with read pointer
+    rts                         ; Return
+
+; ***
+; Write data from register A into I/O buffer 1.
+;
+; >|registerA:  data to store in the buffer
+; ***
+; @FlagsModified
+io_write_buffer_1:
+    phx                         ; Save X register to stack
+
+    ldx IO_BUFFER_1_WRITE_PTR   ; Load write pointer into register X
+    sta IO_BUFFER_1,x           ; Store A register into buffer at offset X
+    inc IO_BUFFER_1_WRITE_PTR   ; Increment write pointer
+
+    plx                         ; Restore X register from stack
+    rts                         ; Return
+
+; ***
+; Read data from I/O buffer 1 into register A if data is available.
+;
+; <|registerA:  value pulled from the buffer
+; <|flags:      carry flag indicates data was read
+; ***
+; @RegisterAModified
+; @FlagsModified
+io_read_buffer_1:
+    phx                         ; Save X register to stack
+
+    jsr io_buffer_1_unread_size ; Check if buffer has data
+    beq @no_data_available      ; Return if no data found
+    ldx IO_BUFFER_1_READ_PTR    ; Load read pointer into register X
+    lda IO_BUFFER_1,x           ; Read buffer at offset X into A register
+    inc IO_BUFFER_1_READ_PTR    ; Increment read pointer
+    sec                         ; Set carry flag
+    jmp @return                 ; Exit subroutine
+
+@no_data_available:
+    clc                         ; Clear carry flag
+
+@return:
+    plx                         ; Restore X register from stack
+    rts                         ; Return
+
+; ***
+; Calculate how much unread data is in I/O buffer 1.
+;
+; <|registerA:  size of the unread data
+; ***
+; @RegisterAModified
+; @FlagsModified
+io_buffer_1_unread_size:
+    lda IO_BUFFER_1_WRITE_PTR   ; Load write pointer into register A
+    sec                         ; Set carry bit
+    sbc IO_BUFFER_1_READ_PTR    ; Subtract with carry read ptr from write ptr
+    rts                         ; Return
+
+; ---
 ; Constants for addressing the asynchronous communications interface adapter
 ; (ACIA).
 ;
@@ -18,12 +92,11 @@ IO_ACIA_CTRL   = $5003     ; 1 byte
 ; ***
 ; Input a character from the serial interface.
 ;
-; <|flags:       carry flag indicates key was pressed
 ; <|registerA:   key value
+; <|flags:       carry flag indicates key was pressed
 ; ***
 ; @RegisterAModified
 ; @FlagsModified
-CHRIN:
 io_acia_char_in:
     lda     IO_ACIA_STATUS      ; Read ACIA status register
     and     #$08                ; Check for receive data
@@ -42,7 +115,6 @@ io_acia_char_in:
 ; >|registerA:  character to send
 ; ***
 ; @FlagsModified
-CHROUT:
 io_acia_char_out:
     pha                         ; Save reg A to stack
     sta     IO_ACIA_DATA        ; Send character to serial interface
