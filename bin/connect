@@ -6,7 +6,7 @@ picocom \
     --baud 19200 \
     --databits 8 \
     --stopbits 1 \
-    --flow n \
+    --flow h \
     --parity n \
     --imap spchex,8bithex \
     "${SERIAL_DEVICE}"

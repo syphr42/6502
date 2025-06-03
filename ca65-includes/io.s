@@ -73,16 +73,21 @@ io_buffer_1_unread_size:
     rts                         ; Return
 
 ; ---
-; Constants for addressing the asynchronous communications interface adapter
-; (ACIA).
+; Constants for interacting with the asynchronous communications interface
+; adapter (ACIA).
 ;
 ; Address space: 0x5000 - 0x5FFF
 ; ---
 
-IO_ACIA_DATA   = $5000     ; 1 byte
-IO_ACIA_STATUS = $5001     ; 1 byte
-IO_ACIA_CMD    = $5002     ; 1 byte
-IO_ACIA_CTRL   = $5003     ; 1 byte
+IO_ACIA_ADDR_DATA       = $5000         ; 1 byte
+IO_ACIA_ADDR_STATUS     = $5001         ; 1 byte
+IO_ACIA_ADDR_CMD        = $5002         ; 1 byte
+IO_ACIA_ADDR_CTRL       = $5003         ; 1 byte
+
+IO_ACIA_DATA_CMD_CFG    = %00001001     ; No parity, no echo, interrupts enabled
+IO_ACIA_MASK_CMD_RTS    = %00001000     ; Ready to receive data
+
+IO_ACIA_DATA_CTRL_CFG   = %00011111     ; 8-N-1, 19200 baud
 
 ; ---
 ; Subroutines for interacting with the asynchronous communications interface
@@ -92,12 +97,14 @@ IO_ACIA_CTRL   = $5003     ; 1 byte
 ; ***
 ; Reset the ACIA.
 ; ***
+; @RegisterAModified
+; @FlagsModified
 io_acia_reset:
-    jsr     io_init_buffer_1            ; Init I/O buffer 1.
-    lda     #$1F                        ; UART: 8-N-1, 19200 baud.
-    sta     IO_ACIA_CTRL                ; Send UART config to control address.
-    lda     #$89                        ; UART: no parity, no echo, interrupts.
-    sta     IO_ACIA_CMD                 ; Send UART setup command.
+    jsr     io_init_buffer_1            ; Init I/O buffer 1
+    lda     #IO_ACIA_DATA_CTRL_CFG      ; Load UART control data
+    sta     IO_ACIA_ADDR_CTRL           ; Send UART control data
+    lda     #IO_ACIA_DATA_CMD_CFG       ; Load UART command data
+    sta     IO_ACIA_ADDR_CMD            ; Send UART command data
     rts                                 ; Return
 
 ; ***
@@ -109,8 +116,14 @@ io_acia_load_buffer:
     jsr     io_acia_read_direct         ; Read character from ACIA
     bcc     @return                     ; Exit if no character was read
     jsr     io_write_buffer_1           ; Write character to I/O buffer 1
+    jsr     io_buffer_1_unread_size     ; Check buffer availability
+    cmp     #240                        ; <= 240/256 bytes occupied
+    bcc     @return                     ; Return if buffer still has room
+    ; lda     #(IO_ACIA_DATA_CMD_CFG & ~IO_ACIA_MASK_CMD_RTS)
+    lda     #$01
+    sta     IO_ACIA_ADDR_CMD            ; Send command to disable RTS
 @return:
-    rts
+    rts                                 ; Return
 
 ; ***
 ; Read a byte from the serial interface input buffer if the buffer is not empty.
@@ -122,10 +135,21 @@ io_acia_load_buffer:
 ; @RegisterAModified
 ; @FlagsModified
 io_acia_read_buffer:
-    jsr     io_read_buffer_1
-    bcc     @return
-    jsr     io_acia_write_direct
-    sec
+    jsr     io_read_buffer_1        ; Read from input buffer
+    bcc     @return                 ; Return if no data was read
+
+    jsr     io_acia_write_direct    ; Echo data back to serial interface
+    pha                             ; Save read data to stack
+
+    jsr     io_buffer_1_unread_size ; Check buffer availability
+    cmp     #192                    ; >= 192/256 bytes occupied
+    bcs     @buffer_cap_low         ; Leave RTS disabled if buffer capacity low
+    ; lda     #(IO_ACIA_DATA_CMD_CFG | IO_ACIA_MASK_CMD_RTS)
+    lda     #$09
+    sta     IO_ACIA_ADDR_CMD        ; Send command to enable RTS
+@buffer_cap_low:
+    pla                             ; Pull read data from the stack
+    sec                             ; Set carry flag to indicate data was read
 @return:
     rts
 
@@ -138,10 +162,10 @@ io_acia_read_buffer:
 ; @RegisterAModified
 ; @FlagsModified
 io_acia_read_direct:
-    lda     IO_ACIA_STATUS      ; Read ACIA status register
+    lda     IO_ACIA_ADDR_STATUS ; Read ACIA status register
     and     #$08                ; Check for receive data
     beq     @no_key_pressed     ; If no receive data, exit
-    lda     IO_ACIA_DATA        ; If receive data indicated, read it
+    lda     IO_ACIA_ADDR_DATA   ; If receive data indicated, read it
     sec                         ; Set carry flag
     rts                         ; Return
 @no_key_pressed:
@@ -157,7 +181,7 @@ io_acia_read_direct:
 ; @FlagsModified
 io_acia_write_direct:
     pha                         ; Save reg A to stack
-    sta     IO_ACIA_DATA        ; Send character to serial interface
+    sta     IO_ACIA_ADDR_DATA   ; Send character to serial interface
     lda     #$FF                ; Set counter to 255
 @tx_delay:
     dec                         ; Decrement counter
