@@ -8,5 +8,5 @@ picocom \
     --stopbits 1 \
     --flow n \
     --parity n \
-    --imap crcrlf,spchex,8bithex \
+    --imap spchex,8bithex \
     "${SERIAL_DEVICE}"
