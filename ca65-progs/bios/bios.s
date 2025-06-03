@@ -17,8 +17,9 @@ IO_BUFFER_1:            .res $100       ; Must be 256 bytes
     .include "lcd.s"
 
 bios_reset:
-    jsr     io_acia_reset               ; Reset the ACIA for serial comms
     jsr     lcd_reset                   ; Reset LCD
+    ; TODO - lcd_reset also configures VIA for ACIA workaround!
+    jsr     io_acia_reset               ; Reset the ACIA for serial comms
     cli                                 ; Enable CPU interrupts
     jmp     WOZMON                      ; Jump to Wozmon
 

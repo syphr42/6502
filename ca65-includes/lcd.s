@@ -20,7 +20,9 @@ LCD_MODE_DATA = %00100000
 lcd_reset:
     pha             ; Save A register to stack
 
-    lda #%11100000  ; Set data direction (top 3 pins) port A to output
+    ; TODO ACIA workaround requires bottom pin on port A to be output
+    ; This should not be setup here!
+    lda #%11100001  ; Set data direction (top 3 pins) port A to output
     sta IO_VIA_DDRA
     lda #%11111111  ; Set data direction (all pins) port B to output
     sta IO_VIA_DDRB

@@ -85,8 +85,6 @@ IO_ACIA_ADDR_CMD        = $5002         ; 1 byte
 IO_ACIA_ADDR_CTRL       = $5003         ; 1 byte
 
 IO_ACIA_DATA_CMD_CFG    = %00001001     ; No parity, no echo, interrupts enabled
-IO_ACIA_MASK_CMD_RTS    = %00001000     ; Ready to receive data
-
 IO_ACIA_DATA_CTRL_CFG   = %00011111     ; 8-N-1, 19200 baud
 
 ; ---
@@ -105,6 +103,9 @@ io_acia_reset:
     sta     IO_ACIA_ADDR_CTRL           ; Send UART control data
     lda     #IO_ACIA_DATA_CMD_CFG       ; Load UART command data
     sta     IO_ACIA_ADDR_CMD            ; Send UART command data
+    ; TODO lcd_reset is configuring VIA port A to allow this
+    lda     #IO_VIA_DATA_PA_ACIA_RTS_RDY; Load VIA RTS ready for ACIA
+    sta     IO_VIA_PORTA                ; Send RTS ready
     rts                                 ; Return
 
 ; ***
@@ -119,8 +120,8 @@ io_acia_load_buffer:
     jsr     io_buffer_1_unread_size     ; Check buffer availability
     cmp     #240                        ; <= 240/256 bytes occupied
     bcc     @return                     ; Return if buffer still has room
-    lda     #(IO_ACIA_DATA_CMD_CFG & ~IO_ACIA_MASK_CMD_RTS)
-    sta     IO_ACIA_ADDR_CMD            ; Send command to disable RTS
+    lda     #IO_VIA_DATA_PA_ACIA_RTS_NRDY ; Set RTS not ready
+    sta     IO_VIA_PORTA                ; Send command to disable RTS
 @return:
     rts                                 ; Return
 
@@ -143,8 +144,8 @@ io_acia_read_buffer:
     jsr     io_buffer_1_unread_size ; Check buffer availability
     cmp     #192                    ; >= 192/256 bytes occupied
     bcs     @buffer_cap_low         ; Leave RTS disabled if buffer capacity low
-    lda     #(IO_ACIA_DATA_CMD_CFG | IO_ACIA_MASK_CMD_RTS)
-    sta     IO_ACIA_ADDR_CMD        ; Send command to enable RTS
+    lda     #IO_VIA_DATA_PA_ACIA_RTS_RDY ; Set RTS ready
+    sta     IO_VIA_PORTA            ; Send command to enable RTS
 @buffer_cap_low:
     pla                             ; Pull read data from the stack
     sec                             ; Set carry flag to indicate data was read
@@ -197,6 +198,9 @@ io_acia_write_direct:
 ; Register A
 IO_VIA_DDRA   = $6003   ; 1 byte
 IO_VIA_PORTA  = $6001   ; 1 byte
+
+IO_VIA_DATA_PA_ACIA_RTS_RDY     = %00000000 ; ACIA ready to receive
+IO_VIA_DATA_PA_ACIA_RTS_NRDY    = %00000001 ; ACIA not ready to receive
 
 ; Register B
 IO_VIA_DDRB   = $6002   ; 1 byte
