@@ -3,7 +3,7 @@
 
 
     .zeropage
-                        .org $A0
+                        .org $00
 IO_BUFFER_1_READ_PTR:   .res 1
 IO_BUFFER_1_WRITE_PTR:  .res 1
 
