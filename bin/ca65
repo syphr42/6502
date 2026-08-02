@@ -21,10 +21,14 @@ function main()
     local object_file
     object_file="${output_dir}/${root_name}.o"
 
+    local list_file
+    list_file="${output_dir}/${root_name}.lst"
+
     # Assemble
     ca65 \
         --include-dir "$(lib_local_path ../ca65-includes)" \
         -o "${object_file}" \
+        -l "${list_file}" \
         "${assembly_file}"
 
     local config_file
